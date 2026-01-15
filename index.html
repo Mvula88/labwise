@@ -476,6 +476,26 @@
                             <textarea id="message" name="message" rows="3" placeholder="Any special requirements or questions?"></textarea>
                         </div>
 
+                        <div class="form-group">
+                            <label for="attachment">
+                                Attach Your Item List (Optional)
+                                <span class="file-info">Excel, Word, PDF - Max 10MB</span>
+                            </label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv" class="file-input">
+                                <label for="attachment" class="file-label">
+                                    <span class="upload-icon">☁️</span>
+                                    <span class="file-label-text">Choose File or Drag & Drop</span>
+                                </label>
+                                <div class="file-selected" id="fileSelected" style="display: none;">
+                                    <span class="file-icon">📄</span>
+                                    <span id="fileName"></span>
+                                    <button type="button" class="remove-file" id="removeFile">✕</button>
+                                </div>
+                            </div>
+                            <small class="form-help">You can attach a document with your item list instead of typing it above. Accepted formats: Excel (.xls, .xlsx), Word (.doc, .docx), PDF (.pdf), Text (.txt, .csv)</small>
+                        </div>
+
                         <button type="submit" class="btn-primary btn-full">Submit Quote Request</button>
                     </form>
                 </div>

@@ -113,6 +113,106 @@ scrollToTopBtn.addEventListener('click', () => {
 });
 
 // ===================================
+// File Upload Handling
+// ===================================
+let uploadedFile = null;
+const fileInput = document.getElementById('attachment');
+const fileLabel = document.querySelector('.file-label');
+const fileSelected = document.getElementById('fileSelected');
+const fileName = document.getElementById('fileName');
+const removeFileBtn = document.getElementById('removeFile');
+const fileUploadWrapper = document.querySelector('.file-upload-wrapper');
+
+// File size validation (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+function validateFile(file) {
+    if (file.size > MAX_FILE_SIZE) {
+        showFormMessage('File size exceeds 10MB. Please choose a smaller file.', 'error');
+        return false;
+    }
+
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'text/csv'
+    ];
+
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|xls|xlsx|txt|csv)$/i)) {
+        showFormMessage('Invalid file type. Please upload Excel, Word, PDF, or Text files only.', 'error');
+        return false;
+    }
+
+    return true;
+}
+
+function displaySelectedFile(file) {
+    if (validateFile(file)) {
+        uploadedFile = file;
+        fileName.textContent = file.name;
+        fileLabel.style.display = 'none';
+        fileSelected.style.display = 'flex';
+    } else {
+        fileInput.value = '';
+    }
+}
+
+if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            displaySelectedFile(file);
+        }
+    });
+}
+
+if (removeFileBtn) {
+    removeFileBtn.addEventListener('click', () => {
+        uploadedFile = null;
+        fileInput.value = '';
+        fileLabel.style.display = 'flex';
+        fileSelected.style.display = 'none';
+        fileName.textContent = '';
+    });
+}
+
+if (fileUploadWrapper) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        fileUploadWrapper.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        fileUploadWrapper.addEventListener(eventName, () => {
+            fileUploadWrapper.classList.add('drag-over');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        fileUploadWrapper.addEventListener(eventName, () => {
+            fileUploadWrapper.classList.remove('drag-over');
+        });
+    });
+
+    fileUploadWrapper.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            displaySelectedFile(file);
+        }
+    });
+}
+
+// ===================================
 // Quote Form Handling
 // ===================================
 const quoteForm = document.getElementById('quoteForm');
@@ -134,7 +234,7 @@ quoteForm.addEventListener('submit', function(e) {
 
     // Create email body
     const emailSubject = `Quote Request from ${formData.name}`;
-    const emailBody = `
+    let emailBody = `
 Name/Institution: ${formData.name}
 Email: ${formData.email}
 Phone: ${formData.phone}
@@ -149,6 +249,11 @@ Additional Notes:
 ${formData.message || 'None'}
     `.trim();
 
+    // Add attachment info if file is uploaded
+    if (uploadedFile) {
+        emailBody += `\n\n[ATTACHMENT: ${uploadedFile.name}]\nPlease remember to attach this file manually when sending the email.`;
+    }
+
     // Create mailto link
     const mailtoLink = `mailto:labwisetradingcc@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
 
@@ -156,11 +261,23 @@ ${formData.message || 'None'}
     window.location.href = mailtoLink;
 
     // Show success message
-    showFormMessage('Quote request prepared! Your email client will open shortly.', 'success');
+    if (uploadedFile) {
+        showFormMessage(`Quote request prepared! Don't forget to attach ${uploadedFile.name} before sending.`, 'success');
+    } else {
+        showFormMessage('Quote request prepared! Your email client will open shortly.', 'success');
+    }
 
     // Optional: Reset form after a delay
     setTimeout(() => {
         quoteForm.reset();
+        // Reset file upload
+        if (uploadedFile) {
+            uploadedFile = null;
+            fileInput.value = '';
+            fileLabel.style.display = 'flex';
+            fileSelected.style.display = 'none';
+            fileName.textContent = '';
+        }
     }, 2000);
 });
 
